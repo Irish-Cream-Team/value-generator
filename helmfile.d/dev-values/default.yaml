@@ -1,0 +1,25 @@
+
+name: default
+replicacounts: 2
+
+images:
+  PullSecrets: default
+  repository: []
+  tag: dev
+
+configmap:
+  configmaps: []
+
+service:
+  ports:
+    - name: http
+      port: 3000
+      tartgetPort: 3000 
+ingress:
+  enabled: true
+  hosts:
+  - host: default
+    paths: 
+    - path: /
+      service: default
+      port: 3000

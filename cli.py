@@ -91,7 +91,7 @@ def createHelmFile(namespace):
 
 def valuesBlock(countsMicroservices,env): 
   for i in range(countsMicroservices):
-    click.echo("enter data for the "+ str(countsMicroservices) + " microservice:")
+    click.echo("Please enter data for microservice #"+ str(countsMicroservices))
     questions = [
     inquirer.Text("name", message="name " , default='default'),
     inquirer.Text("replicacount", message="number of replica " , validate=validate_number),
@@ -114,15 +114,15 @@ def valuesBlock(countsMicroservices,env):
 
 def serviceBlock(microServisName,env):
   questions = [
-    inquirer.Text("serviceCount", message="enter how many service port you want?",validate=validate_number)]
+    inquirer.Text("serviceCount", message="number of ports",validate=validate_number)]
   answers = inquirer.prompt(questions)
   serviceCount = answers['serviceCount']
   
   for i in range(int(serviceCount)):
-    click.echo("enter data for the " + str(serviceCount) + " service port")
+    click.echo("Please enter data for service port  #" + str(serviceCount))
     questions = [
     inquirer.Text("name", message="port name" ,default="http"),
-    inquirer.Text("port", message="port number " ,validate=validate_number),
+    inquirer.Text("port", message="port number" ,validate=validate_number),
     inquirer.Text("targetPort", message="target port number" ,validate=validate_number)]
     answers = inquirer.prompt(questions)
     name = answers['name']
@@ -131,7 +131,7 @@ def serviceBlock(microServisName,env):
     with open('helmfile.d/'+env+'-values/'+microServisName+'.yaml', 'a') as yfile:
       yfile.write(serviceBlockData.format(name, port,targetPort))
   questions = [
-    inquirer.Text('createIngress', message="do you want ingress for your microservice (true/false)?", validate=validate_bool)
+    inquirer.Text('createIngress', message="Create ingress? (true/false)?", validate=validate_bool)
     ]        
   answers = inquirer.prompt(questions)
   createIngress = answers['createIngress']
@@ -139,23 +139,23 @@ def serviceBlock(microServisName,env):
     ingressBlock(microServisName,env)
   
 def ingressBlock(microServisName,env):
-  click.echo("enter data for the ingress:")
+  click.echo("Please data for ingress:")
   questions = [
-    inquirer.Text("hostName", message="enter your host name ", default='default')]
+    inquirer.Text("hostName", message="host name", default='default')]
   answers = inquirer.prompt(questions)
   hostName = answers['hostName']
   with open('helmfile.d/'+env+'-values/'+microServisName+'.yaml', 'a') as yfile:
     yfile.write(ingressBlockData.format(hostName))
   
   questions = [
-    inquirer.Text("pathCount", message="enter how many paths you want", validate=validate_number)]
+    inquirer.Text("pathCount", message="number of paths: ", validate=validate_number)]
   answers = inquirer.prompt(questions)
   pathCount = answers['pathCount']
   for i in range(int(pathCount)):
-    click.echo("enter data for the " + str(pathCount) + " path:")
+    click.echo("Please enter data for path  #" + str(pathCount))
     questions = [
     inquirer.Text("path", message="your path" ,default="/"),
-    inquirer.Text("service", message="service name ", default='default'),
+    inquirer.Text("service", message="service name", default='default'),
     inquirer.Text("port", message="port number" ,validate=validate_number)]
     answers = inquirer.prompt(questions)
     path = answers['path']
@@ -177,9 +177,9 @@ def val(ctx, param, value):
     
 
 @click.command()
-@click.option('--countsmicroservices',type=click.INT, prompt='how many microservices you want?',required=True,callback=val)
-@click.option('--namespace',default='abc', prompt='what is your namespace?')
-@click.option('--env',default='dev', prompt='in which enviroment?')
+@click.option('--countsmicroservices',type=click.INT, prompt='number of microservices',required=True,callback=val)
+@click.option('--namespace',default='abc', prompt='namespace')
+@click.option('--env',default='dev', prompt='enviroment')
 
 def main(countsmicroservices,namespace,env):
   if os.path.isdir('helmfile.d'):
