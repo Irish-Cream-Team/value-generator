@@ -1,8 +1,9 @@
 
-from random import choices
+# from random import choices
 import click
 import inquirer
 import os
+import re
 
 valuesDataBlock = """
 name: {}
@@ -60,8 +61,23 @@ releasesDataBlock = """
 
 releasename = []
 
+def validate_number(answers, value):
+  try:
+    if int(value) <= 0:
+      raise ValueError(value)
+    else:
+      return value
+  except ValueError:
+    click.echo('\n given invalide number,should be larger than zero')
 
-
+def validate_bool(answers, value):
+  try:
+    if value != 'false' and value != 'true':
+      raise ValueError(value)
+    else:
+      return value
+  except ValueError:
+    click.echo('\n given invalide value,should be false or true')
 
 def releasesCountFunc (namespace):
   for name in releasename:
@@ -78,7 +94,7 @@ def valuesBlock(countsMicroservices,env):
     click.echo("enter data for the "+ str(countsMicroservices) + " microservice:")
     questions = [
     inquirer.Text("name", message="name " , default='default'),
-    inquirer.Text("replicacount", message="number of replica " , default=1),
+    inquirer.Text("replicacount", message="number of replica " , validate=validate_number),
     inquirer.Text("repository", message="your image repository " , default='default'),
     inquirer.Text("pullSecrets", message="pullsecrets" , default='[]'),
     inquirer.Text("tag", message="image tag" , default='dev'),
@@ -98,7 +114,7 @@ def valuesBlock(countsMicroservices,env):
 
 def serviceBlock(microServisName,env):
   questions = [
-    inquirer.Text("serviceCount", message="enter how many service port you want?",default=1)]
+    inquirer.Text("serviceCount", message="enter how many service port you want?",validate=validate_number)]
   answers = inquirer.prompt(questions)
   serviceCount = answers['serviceCount']
   
@@ -106,8 +122,8 @@ def serviceBlock(microServisName,env):
     click.echo("enter data for the " + str(serviceCount) + " service port")
     questions = [
     inquirer.Text("name", message="port name" ,default="http"),
-    inquirer.Text("port", message="port number " ,default=80),
-    inquirer.Text("targetPort", message="target port number" ,default="80")]
+    inquirer.Text("port", message="port number " ,validate=validate_number),
+    inquirer.Text("targetPort", message="target port number" ,validate=validate_number)]
     answers = inquirer.prompt(questions)
     name = answers['name']
     port = answers['port']
@@ -115,7 +131,7 @@ def serviceBlock(microServisName,env):
     with open('helmfile.d/'+env+'-values/'+microServisName+'.yaml', 'a') as yfile:
       yfile.write(serviceBlockData.format(name, port,targetPort))
   questions = [
-    inquirer.Text('createIngress', message="do you want ingress for your microservice (true/false)?",choices=['true', 'false'], default='false'),
+    inquirer.Text('createIngress', message="do you want ingress for your microservice (true/false)?", validate=validate_bool)
     ]        
   answers = inquirer.prompt(questions)
   createIngress = answers['createIngress']
@@ -132,7 +148,7 @@ def ingressBlock(microServisName,env):
     yfile.write(ingressBlockData.format(hostName))
   
   questions = [
-    inquirer.Text("pathCount", message="enter how many paths you want", default=1)]
+    inquirer.Text("pathCount", message="enter how many paths you want", validate=validate_number)]
   answers = inquirer.prompt(questions)
   pathCount = answers['pathCount']
   for i in range(int(pathCount)):
@@ -140,7 +156,7 @@ def ingressBlock(microServisName,env):
     questions = [
     inquirer.Text("path", message="your path" ,default="/"),
     inquirer.Text("service", message="service name ", default='default'),
-    inquirer.Text("port", message="port number" ,default="80")]
+    inquirer.Text("port", message="port number" ,validate=validate_number)]
     answers = inquirer.prompt(questions)
     path = answers['path']
     service = answers['service']
@@ -148,19 +164,34 @@ def ingressBlock(microServisName,env):
     with open('helmfile.d/'+env+'-values/'+microServisName+'.yaml', 'a') as yfile:
       yfile.write(ingressPathsBlockData.format(path,service,port))
 
+def val(ctx, param, value):
+  try:
+    if int(value) <= 0:
+      raise ValueError(value)
+    else:
+      return value
+  except ValueError:
+    click.echo('Invalide number microservices given,should be larger than zero')
+    value = click.prompt(param.prompt)
+    return val(ctx, param, value)
+    
+
 @click.command()
-@click.option('--countsmicroservices',default=1, prompt='how many microservices you want?')
+@click.option('--countsmicroservices',type=click.INT, prompt='how many microservices you want?',required=True,callback=val)
 @click.option('--namespace',default='abc', prompt='what is your namespace?')
 @click.option('--env',default='dev', prompt='in which enviroment?')
 
 def main(countsmicroservices,namespace,env):
-  os.mkdir('helmfile.d')
-  os.mkdir('helmfile.d/helm')
-  os.mkdir('helmfile.d/dev-values')
-  os.mkdir('helmfile.d/prod-values')
-  valuesBlock(countsmicroservices,env)
-  createHelmFile(namespace)
-    # releasesCountFunc (imagename,countsMicroservices)
+  if os.path.isdir('helmfile.d'):
+    click.echo("The helmfile folder already exists")
+  else:
+    os.mkdir('helmfile.d')
+    os.mkdir('helmfile.d/helm')
+    os.mkdir('helmfile.d/dev-values')
+    os.mkdir('helmfile.d/prod-values')
+    valuesBlock(countsmicroservices,env)
+    createHelmFile(namespace)
+  
 
 if __name__ == '__main__':
     main()
