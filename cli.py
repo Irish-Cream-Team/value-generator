@@ -57,8 +57,8 @@ environments:
 repositories:
 - name: yesodot
   url: https://harborreg-2.northeurope.cloudapp.azure.com/chartrepo/library
-  username: {{ requiredEnv "HARBOR_USER" }}
-  password: {{ requiredEnv "HARBOR_PASSWORD" }}
+  username: {{{{ requiredEnv "HARBOR_USER" }}}}
+  password: {{{{ requiredEnv "HARBOR_PASSWORD" }}}}
 
 releases:"""
 
@@ -66,9 +66,9 @@ releasesDataBlock = """
 - name: {}
   namespace: {}
   chart: yesodot/common
-  version: {{ requiredEnv "COMMON_VERSION" | default "0.5.2" }}
+  version: {{{{ requiredEnv "COMMON_VERSION" | default "0.5.2" }}}}
   values:
-    - ../{{ .Environment.Name }}-values/{}.yaml
+    - ../{{{{ .Environment.Name }}}}-values/{}.yaml
   installed: true """
 
 releasename = []
@@ -82,14 +82,7 @@ def validate_number(answers, value):
   except ValueError:
     click.echo('\n given invalide number,should be larger than zero')
 
-# def validate_bool(answers, value):
-#   try:
-#     if value.lower() != 'false' and value.lower() != 'true' and value.lower() != 'f' and value.lower() != 't':
-#       raise ValueError(value)
-#     else:
-#       return value
-#   except ValueError:
-#     click.echo('\n given invalide value,should be false or true')
+
 
 
 def releasesCountFunc (namespace):
@@ -122,17 +115,17 @@ def valuesBlock(countsMicroservices,env):
     configMap = answers['configMap']
     releasename.append(name)
     with open('helmfile.d/'+env+'-values/'+name+'.yaml', 'w') as yfile:
-        yfile.write(valuesDataBlock.format(name,repository,replicacount,pullSecrets,tag,configMap))
+        yfile.write(valuesDataBlock.format(name,replicacount,pullSecrets,repository,tag,configMap))
     serviceBlock(name,env)
     questions = [
-    inquirer.List('createIngress', message="Create ingress?",choices=["true","false"])
+    inquirer.List('createIngress', message="Create ingress?",choices=["false","true"])
     ]        
     answers = inquirer.prompt(questions)
     createIngress = answers['createIngress']
     if (createIngress == 'true'):
       ingressBlock(name,env)
     questions = [
-    inquirer.List('createVolume', message="Create volume?", choices=["true","false"])
+    inquirer.List('createVolume', message="Create volume?", choices=["false","true"])
     ]        
     answers = inquirer.prompt(questions)
     createVolume = answers['createVolume']
