@@ -10,10 +10,24 @@ repositories:
   password: { requiredEnv "HARBOR_PASSWORD" }
 
 releases:
-- name: default
+- name: client-example
   namespace: abc
   chart: yesodot/common
   version: { requiredEnv "COMMON_VERSION" | default "0.5.2" }
   values:
-    - ../{ .Environment.Name }-values/default.yaml
+    - ../{ .Environment.Name }-values/client-example.yaml
+  installed: true 
+- name: authenticator-example
+  namespace: abc
+  chart: yesodot/common
+  version: { requiredEnv "COMMON_VERSION" | default "0.5.2" }
+  values:
+    - ../{ .Environment.Name }-values/authenticator-example.yaml
+  installed: true 
+- name: api-example
+  namespace: abc
+  chart: yesodot/common
+  version: { requiredEnv "COMMON_VERSION" | default "0.5.2" }
+  values:
+    - ../{ .Environment.Name }-values/api-example.yaml
   installed: true 

@@ -1,0 +1,25 @@
+
+name: client-example
+replicacounts: 1
+
+images:
+  PullSecrets: harborreg-2.northeurope.cloudapp.azure.com/image-tag-test/client_example
+  repository: []
+  tag: prod
+
+configmap:
+  configmaps: []
+
+service:
+  ports:
+    - name: http
+      port: 80
+      tartgetPort: 80 
+ingress:
+  enabled: true
+  hosts:
+  - host: client-example.branch-yesodot.org
+    paths: 
+    - path: /
+      service: client-example
+      port: 80

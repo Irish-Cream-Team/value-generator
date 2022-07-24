@@ -1,0 +1,17 @@
+
+name: api-example
+replicacounts: 1
+
+images:
+  PullSecrets: []
+  repository: harborreg-2.northeurope.cloudapp.azure.com/image-tag-test/api_example
+  tag: prod
+
+configmap:
+  configmaps: []
+
+service:
+  ports:
+    - name: http
+      port: 3000
+      tartgetPort: 3000 
