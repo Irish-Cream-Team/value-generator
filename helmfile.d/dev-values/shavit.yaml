@@ -1,0 +1,32 @@
+
+name: shavit
+replicacounts: 1
+
+images:
+  PullSecrets: 
+  repository: nginx
+  tag: 
+
+configmap:
+  configmaps: []
+
+service:
+  ports:
+    - name: nginx
+      port: 2345
+      tartgetPort: 2345 
+ingress:
+  enabled: true
+  hosts:
+  - host: shavit.branch-yesodot.org
+    paths: 
+    - path: shoval
+      service: shavit
+      port: 2345
+volume:
+  - name: mattan
+    type: azurefile
+    claimName: shsh
+    mounts: 
+      - mountPath: shshg
+        subPath: dggg

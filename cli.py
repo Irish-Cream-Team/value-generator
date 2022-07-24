@@ -114,7 +114,9 @@ def valuesBlock(countsMicroservices,env):
     tag = answers['tag']
     configMap = answers['configMap']
     releasename.append(name)
-    with open('helmfile.d/'+env+'-values/'+name+'.yaml', 'w') as yfile:
+    with open('helmfile.d/dev-values/'+name+'.yaml', 'w') as yfile:
+        yfile.write(valuesDataBlock.format(name,replicacount,pullSecrets,repository,tag,configMap))
+    with open('helmfile.d/prod-values/'+name+'.yaml', 'w') as yfile:
         yfile.write(valuesDataBlock.format(name,replicacount,pullSecrets,repository,tag,configMap))
     serviceBlock(name,env)
     questions = [
@@ -146,19 +148,23 @@ def serviceBlock(microServisName,env):
     answers = inquirer.prompt(questions)
     name = answers['name']
     port = answers['port']
-    with open('helmfile.d/'+env+'-values/'+microServisName+'.yaml', 'a') as yfile:
+    with open('helmfile.d/dev-values/'+microServisName+'.yaml', 'a') as yfile:
+      yfile.write(serviceBlockData.format(name, port,port))
+    with open('helmfile.d/prod-values/'+microServisName+'.yaml', 'a') as yfile:
       yfile.write(serviceBlockData.format(name, port,port))
   
 def ingressBlock(microServisName,env):
   click.echo("Please data for ingress:")
   questions = [
-    inquirer.List('dnsZone', message=" choose dns zone?",choices=[".branch-yesodot.org"]),
+    inquirer.List('dnsZone', message=" choose dns zone?",choices=[".branch-yesodot.org", ".rancher.prod.services.idf", ".yesodot.prod.services.idf"]),
     inquirer.Text("hostName", message="host name")]
   answers = inquirer.prompt(questions)
   dnsZone = answers['dnsZone']
   hostName = answers['hostName']
   hostName = hostName + dnsZone
-  with open('helmfile.d/'+env+'-values/'+microServisName+'.yaml', 'a') as yfile:
+  with open('helmfile.d/dev-values/'+microServisName+'.yaml', 'a') as yfile:
+    yfile.write(ingressBlockData.format(hostName))
+  with open('helmfile.d/prod-values/'+microServisName+'.yaml', 'a') as yfile:
     yfile.write(ingressBlockData.format(hostName))
   
   questions = [
@@ -173,7 +179,9 @@ def ingressBlock(microServisName,env):
     answers = inquirer.prompt(questions)
     path = answers['path']
     port = answers['port']
-    with open('helmfile.d/'+env+'-values/'+microServisName+'.yaml', 'a') as yfile:
+    with open('helmfile.d/dev-values/'+microServisName+'.yaml', 'a') as yfile:
+      yfile.write(ingressPathsBlockData.format(path,microServisName,port))
+    with open('helmfile.d/prod-values/'+microServisName+'.yaml', 'a') as yfile:
       yfile.write(ingressPathsBlockData.format(path,microServisName,port))
 
 def volumeBlock(microServisName,env):
@@ -186,7 +194,9 @@ def volumeBlock(microServisName,env):
   volumeName = answers['volumeName']
   volumeType = answers['volumeType']
   claimName = answers['claimName']
-  with open('helmfile.d/'+env+'-values/'+microServisName+'.yaml', 'a') as yfile:
+  with open('helmfile.d/dev-values/'+microServisName+'.yaml', 'a') as yfile:
+    yfile.write(volumeBlockData.format(volumeName,volumeType,claimName))
+  with open('helmfile.d/prod-values/'+microServisName+'.yaml', 'a') as yfile:
     yfile.write(volumeBlockData.format(volumeName,volumeType,claimName))
   
   questions = [
@@ -201,7 +211,9 @@ def volumeBlock(microServisName,env):
     answers = inquirer.prompt(questions)
     mountPath = answers['mountPath']
     subPath = answers['subPath']
-    with open('helmfile.d/'+env+'-values/'+microServisName+'.yaml', 'a') as yfile:
+    with open('helmfile.d/dev-values/'+microServisName+'.yaml', 'a') as yfile:
+      yfile.write(volumeMountPathsBlockData.format(mountPath,subPath))
+    with open('helmfile.d/prod-values/'+microServisName+'.yaml', 'a') as yfile:
       yfile.write(volumeMountPathsBlockData.format(mountPath,subPath))
 
 def val(ctx, param, value):
@@ -223,20 +235,7 @@ def val(ctx, param, value):
 
 def main(countsmicroservices,namespace,env):
   if os.path.isdir('helmfile.d'):
-    if env == 'dev':
-      if os.path.isdir('helmfile.d/dev-values'):
-        click.echo("The dev-values folder already exists")
-      else:
-         os.mkdir('helmfile.d/dev-values')
-         valuesBlock(countsmicroservices,env)
-         createHelmFile(namespace)
-    elif  env == 'prod':
-      if os.path.isdir('helmfile.d/prod-values'):
-        click.echo("The prod-values folder already exists")
-      else:
-        os.mkdir('helmfile.d/prod-values')
-        valuesBlock(countsmicroservices,env)
-        createHelmFile(namespace)
+    click.echo("The helmfile folder already exists")
   else:
     os.mkdir('helmfile.d')
     os.mkdir('helmfile.d/helm')
